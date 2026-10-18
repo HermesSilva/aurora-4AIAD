@@ -55,7 +55,11 @@ using namespace Aurora;
 
 // Define the module export symbol, before including local declarations.
 #if defined(WIN32)
+#if defined(AURORA_STATIC)
+#define AURORA_API // 4AIAD: static library
+#else
 #define AURORA_API __declspec(dllexport)
+#endif
 #else
 #define AURORA_API __attribute__((visibility("default")))
 #endif

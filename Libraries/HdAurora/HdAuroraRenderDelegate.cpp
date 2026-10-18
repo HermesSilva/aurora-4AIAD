@@ -279,7 +279,9 @@ void HdAuroraRenderDelegate::SetDrivers(HdDriverVector const& drivers)
         resourceRegistry.reset(new HdResourceRegistry());
     }
 
+#if !defined(HDAURORA_NO_GL)
     TF_VERIFY(_hgi, "HdAurora requires a Hgi HdDriver.");
+#endif // 4AIAD: a D3D12 host reads the shared texture or Map() without Hgi.
 }
 
 HdAuroraRenderDelegate::~HdAuroraRenderDelegate()

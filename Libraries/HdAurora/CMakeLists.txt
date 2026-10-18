@@ -2,11 +2,13 @@
 project(hdAurora)
 
 find_package(glm REQUIRED) # Find the GLM vector maths package.
+if(NOT AIAD_INTEGRATION) # 4AIAD: no OpenGL/Vulkan when embedded in AIAD (D3D12 host).
 find_package(OpenGL REQUIRED) # Find OpenGL library for pxr targets
 if (NOT APPLE)
     find_package(Vulkan QUIET MODULE COMPONENTS shaderc_combined) # Find Vulkan SDK for pxr targets
 endif()
 find_package(GLEW REQUIRED)
+endif()
 find_package(MaterialX REQUIRED) # MaterialX SDK
 find_package(pxr REQUIRED) # Find the Universal Scene Description (USD) library
 # Alias the namespace to meet the cmake convention on imported targets
@@ -29,9 +31,18 @@ set(VERSION_FILES
 )
 endif()
 
+# 4AIAD: static library without DllMain/version resource when embedded in AIAD.
+set(HDAURORA_LIBRARY_TYPE SHARED)
+set(HDAURORA_DLL_SOURCE "DLL.cpp")
+if(AIAD_INTEGRATION)
+    set(HDAURORA_LIBRARY_TYPE STATIC)
+    set(HDAURORA_DLL_SOURCE "HdAuroraStaticRegistration.cpp")
+    set(VERSION_FILES ${VERSION_FOLDER}/AuroraVersion.h)
+endif()
+
 # Add shard library with all source files.
-add_library(${PROJECT_NAME} SHARED
-    "DLL.cpp"
+add_library(${PROJECT_NAME} ${HDAURORA_LIBRARY_TYPE}
+    ${HDAURORA_DLL_SOURCE}
     "HdAuroraImageCache.cpp"
     "HdAuroraImageCache.h"
     "HdAuroraInstancer.cpp"
@@ -69,16 +80,20 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 # Add dependencies.
+# 4AIAD: without OpenGL there is no GLEW, no OpenGL::GL and no hdx (hdx requires a GPU backend).
+if(AIAD_INTEGRATION)
+    set(HDAURORA_GL_LIBRARIES)
+else()
+    set(HDAURORA_GL_LIBRARIES OpenGL::GL GLEW::glew hdx)
+endif()
 target_link_libraries(${PROJECT_NAME}
 PRIVATE
     glm::glm
-    OpenGL::GL
-    GLEW::glew
+    ${HDAURORA_GL_LIBRARIES}
     MaterialX::GenGlsl
     usd
     hf
     hd
-    hdx
     Foundation
     ${PYTHON_DEPENDENCY}
     Aurora
@@ -90,14 +105,25 @@ endif()
 
 # Add default compile definitions (set in root CMakefile)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${DEFAULT_COMPILE_DEFINITIONS})
+if(AIAD_INTEGRATION)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HDAURORA_NO_GL)
+endif()
 
 # Config the plug information file.
-if(WIN32)
+if(AIAD_INTEGRATION)
+    # 4AIAD: statically linked plugin - the code lives in the host executable.
+    set(PLUG_INFO_LIBRARY_NAME "")
+elseif(WIN32)
     set(PLUG_INFO_LIBRARY_NAME "hdAurora.dll")
 elseif(APPLE)
     set(PLUG_INFO_LIBRARY_NAME "libhdAurora.dylib")
 else()
     set(PLUG_INFO_LIBRARY_NAME "libhdAurora.so")
+endif()
+if(PLUG_INFO_LIBRARY_NAME)
+    set(PLUG_INFO_LIBRARY_PATH "../${PLUG_INFO_LIBRARY_NAME}")
+else()
+    set(PLUG_INFO_LIBRARY_PATH "")
 endif()
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/plugInfo.json.in"
@@ -105,7 +131,7 @@ configure_file(
     @ONLY
 )
 
-if(WIN32)
+if(WIN32 AND NOT AIAD_INTEGRATION)
     # Create a custom target that will copy USD executables to the runtime folder.
     file(GLOB USD_EXECUTABLES ${pxr_ROOT}/bin/*)
     # USD v26.08 installs its Python modules to lib/site-packages;

@@ -16,8 +16,10 @@
 #include "HdAuroraRenderBuffer.h"
 #include "HdAuroraRenderDelegate.h"
 
+#if !defined(HDAURORA_NO_GL)
 #include <GL/glew.h>
 #include <pxr/imaging/hdx/hgiConversions.h>
+#endif
 #include <pxr/imaging/hgi/blitCmds.h>
 #include <pxr/imaging/hgi/blitCmdsOps.h>
 #include <pxr/imaging/hgi/hgi.h>
@@ -26,6 +28,27 @@
 #include <atomic>
 static std::atomic<uint64_t> gUniqueRenderBufferIdCounter(1);
 
+#if defined(HDAURORA_NO_GL)
+// 4AIAD: HdFormat -> HgiFormat without hdx (hdx is not built when OpenUSD has no GPU backend).
+static pxr::HgiFormat _toHgiFormat(pxr::HdFormat format)
+{
+    switch (format)
+    {
+    case pxr::HdFormatUNorm8Vec4:
+        return pxr::HgiFormatUNorm8Vec4;
+    case pxr::HdFormatFloat16Vec4:
+        return pxr::HgiFormatFloat16Vec4;
+    case pxr::HdFormatFloat32:
+        return pxr::HgiFormatFloat32;
+    case pxr::HdFormatFloat32Vec4:
+        return pxr::HgiFormatFloat32Vec4;
+    case pxr::HdFormatInt32:
+        return pxr::HgiFormatInt32;
+    default:
+        return pxr::HgiFormatInvalid;
+    }
+}
+#else
 void HdAuroraPostPendingGLErrors()
 {
     GLenum error;
@@ -197,6 +220,8 @@ HgiHdAuroraTextureGL::~HgiHdAuroraTextureGL()
     HdAuroraPostPendingGLErrors();
 }
 
+#endif // !HDAURORA_NO_GL
+
 // An DirectX GPU texture resource, using a shared handled.
 class HgiHdAuroraTextureDX final : public HgiTexture
 {
@@ -364,7 +389,11 @@ void HdAuroraRenderBuffer::Resolve()
     pxr::HgiTextureDesc texDesc;
     texDesc.debugName      = "HdAurora AovInput Texture";
     texDesc.dimensions     = pxr::GfVec3i(GetWidth(), GetHeight(), 1);
+#if defined(HDAURORA_NO_GL)
+    texDesc.format         = _toHgiFormat(GetFormat());
+#else
     texDesc.format         = pxr::HdxHgiConversions::GetHgiFormat(GetFormat());
+#endif
     texDesc.initialData    = nullptr;
     texDesc.layerCount     = 1;
     texDesc.mipLevels      = 1;
@@ -401,9 +430,13 @@ void HdAuroraRenderBuffer::Resolve()
                 }
                 else
                 {
+#if defined(HDAURORA_NO_GL)
+                    TF_CODING_ERROR("HdAurora: OpenGL texture sharing is not built (HDAURORA_NO_GL).");
+#else
                     // Create a HgiTextureHandle that creates and wraps an OpenGL texture id
                     _texture = HgiTextureHandle(new HgiHdAuroraTextureGL(texDesc, sharedHandle),
                         gUniqueRenderBufferIdCounter.fetch_add(1));
+#endif
                 }
             }
 
@@ -415,6 +448,10 @@ void HdAuroraRenderBuffer::Resolve()
             return;
         }
     }
+
+    // 4AIAD: without a Hgi driver the host reads the pixels itself through Map().
+    if (!_owner->GetHgi())
+        return;
 
     // If we don't have a shareable buffer then fallback to using HGI blit
     size_t stride;
@@ -518,7 +555,16 @@ bool HdAuroraRenderBuffer::hasTextureResource(const pxr::HgiTextureDesc& texDesc
     bool hasTexture = static_cast<bool>(_texture);
     if (hasTexture && texDesc != _texture->GetDescriptor())
     {
-        _owner->GetHgi()->DestroyTexture(&_texture);
+        if (_owner->GetHgi())
+        {
+            _owner->GetHgi()->DestroyTexture(&_texture);
+        }
+        else
+        {
+            // 4AIAD: no Hgi driver - the wrapper was created with new, release it directly.
+            delete _texture.Get();
+            _texture = HgiTextureHandle();
+        }
         hasTexture = false;
     }
 

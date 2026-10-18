@@ -18,7 +18,8 @@ file(MAKE_DIRECTORY "${VERSION_FOLDER}")
 set(DEBUG_FLAG_VALUE 0x0L)
 set(DEBUG_SUFFIX )
 string(TIMESTAMP AURORA_BUILD_YEAR "%Y")
-configure_file(${CMAKE_SOURCE_DIR}/AuroraVersion.h.in ${VERSION_FOLDER}/AuroraVersion.h)
+# 4AIAD: CMAKE_CURRENT_SOURCE_DIR so Aurora can be added with add_subdirectory().
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AuroraVersion.h.in ${VERSION_FOLDER}/AuroraVersion.h)
 
 # Set the root folder.
 set(AURORA_ROOT_DIR ${PROJECT_SOURCE_DIR})
@@ -56,6 +57,9 @@ option(ENABLE_USDVIEW "Build usdview with python" ON)
 
 option(ENABLE_TESTS "Build unit tests" ON)
 option(ENABLE_APPLICATIONS "Build Applications" ON)
+# 4AIAD: build for embedding in Tootega AIAD - static Aurora and HdAurora, no OpenGL in HdAurora
+# (the host owns the D3D12 device and presents the shared render target itself).
+option(AIAD_INTEGRATION "Static libraries; HdAurora without OpenGL/GLEW/hdx" OFF)
 
 # Import the cmake utility functions
 include(toolbox)

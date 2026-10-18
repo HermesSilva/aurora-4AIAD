@@ -83,6 +83,10 @@ void HdAuroraRendererPlugin::DeleteRenderDelegate(HdRenderDelegate* renderDelega
 bool HdAuroraRendererPlugin::IsSupported(
     const HdRendererCreateArgsSchema& /*rendererCreateArgs*/,
     std::string* /*reasonWhyNot*/) const
+#elif PXR_VERSION >= 2511
+// 4AIAD: OpenUSD 25.11 signature.
+bool HdAuroraRendererPlugin::IsSupported(
+    HdRendererCreateArgs const& /*rendererCreateArgs*/, std::string* /*reasonWhyNot*/) const
 #elif HD_API_VERSION >= 46
 bool HdAuroraRendererPlugin::IsSupported(bool /*gpuEnabled*/) const
 #else

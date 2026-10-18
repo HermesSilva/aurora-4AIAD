@@ -145,7 +145,9 @@ def InstallBoost_Helper(context, force, buildArgs):
         # Set the bootstrap toolset 
         bsToolset = ""
         if Windows():
-            if context.cmakeToolset == "v143" or IsVisualStudio2022OrGreater():
+            if context.cmakeToolset == "v145" or IsVisualStudio2026OrGreater():
+                bsToolset = "vc145"
+            elif context.cmakeToolset == "v143" or IsVisualStudio2022OrGreater():
                 bsToolset = "vc143"
             elif context.cmakeToolset == "v142" or IsVisualStudio2019OrGreater():
                 bsToolset = "vc142"
@@ -239,7 +241,9 @@ def InstallBoost_Helper(context, force, buildArgs):
         if Windows():
             # toolset parameter for Visual Studio documented here:
             # https://github.com/boostorg/build/blob/develop/src/tools/msvc.jam
-            if context.cmakeToolset == "v143" or IsVisualStudio2022OrGreater():
+            if context.cmakeToolset == "v145" or IsVisualStudio2026OrGreater():
+                b2Settings.append("toolset=msvc-14.5")
+            elif context.cmakeToolset == "v143" or IsVisualStudio2022OrGreater():
                 b2Settings.append("toolset=msvc-14.3")
             elif context.cmakeToolset == "v142" or IsVisualStudio2019OrGreater():
                 b2Settings.append("toolset=msvc-14.2")
@@ -622,6 +626,10 @@ OIIO_PACKAGE_NAME = "OpenImageIO"
 def InstallOpenImageIO(context, force, buildArgs):
     with CurrentWorkingDirectory(DownloadURL(OIIO_URL, context, force)):
         ApplyGitPatch(context, "OpenImageIO.v3.1.13.0.patch")
+        # 4AIAD: OIIO 3.1.13 clones pystring "master" and then requires commit 381829c; master has
+        # moved since, so the check fails. With an empty tag OIIO clones and checks out the commit.
+        PatchFile("src/cmake/build_pystring.cmake",
+                  [("set (pystring_GIT_TAG master)", "set (pystring_GIT_TAG \"\")")])
 
         extraArgs = ['-DOIIO_BUILD_TOOLS=OFF',
                      '-DOIIO_BUILD_TESTS=OFF',
@@ -739,6 +747,13 @@ def InstallMaterialX(context, force, buildArgs):
         cmakeOptions = ['-DMATERIALX_BUILD_SHARED_LIBS=ON', '-DMATERIALX_BUILD_TESTS=OFF',
                         '-DMATERIALX_BUILD_GEN_SLANG=ON', '-DMATERIALX_BUILD_RENDER=ON',
                         '-DMATERIALX_BUILD_VIEWER=ON', '-DMATERIALX_BUILD_GRAPH_EDITOR=ON']
+        if context.materialxStatic:
+            # 4AIAD: link MaterialX statically into Aurora so it can coexist in one process with
+            # the (older, shared) MaterialX that ships with the host's OpenUSD. The viewer and
+            # graph editor are not needed for that use.
+            cmakeOptions = ['-DMATERIALX_BUILD_SHARED_LIBS=OFF', '-DMATERIALX_BUILD_TESTS=OFF',
+                            '-DMATERIALX_BUILD_GEN_SLANG=ON', '-DMATERIALX_BUILD_RENDER=ON',
+                            '-DMATERIALX_BUILD_VIEWER=OFF', '-DMATERIALX_BUILD_GRAPH_EDITOR=OFF']
         cmakeOptions += buildArgs
 
         RunCMake(context, True, MATERIALX_INSTALL_FOLDER, cmakeOptions)
@@ -1265,6 +1280,15 @@ group.add_argument("-j", "--jobs", type=int, default=GetCPUCount(),
                          .format(GetCPUCount())))
 group.add_argument("--enable-upscaler", action="store_true",
                    help=("Enable DLSS4/FSR upscaling support"))
+group.add_argument("--usd-root", type=str, default=None,
+                   help=("4AIAD: use an existing OpenUSD install at this path instead of "
+                         "building the Autodesk USD fork (DirectX backend only)"))
+group.add_argument("--no-oiio", action="store_true",
+                   help=("4AIAD: do not build OpenImageIO (only needed by the "
+                         "ImageProcessingResolver plugin and the test image helpers)"))
+group.add_argument("--materialx-static", action="store_true",
+                   help=("4AIAD: build MaterialX as static libraries, without viewer and "
+                         "graph editor"))
 group.add_argument("--enable-mdl", action="store_true",
                    help=("Enable NVIDIA MDL SDK support"))
 
@@ -1348,6 +1372,9 @@ class InstallContext:
         # Optional dependencies.
         self.enableUpscaler = args.enable_upscaler
         self.enableMDL = args.enable_mdl
+        self.usdRoot = os.path.abspath(args.usd_root) if args.usd_root else None
+        self.materialxStatic = args.materialx_static
+        self.noOIIO = args.no_oiio
 
         # Dependencies that are forced to be built
         self.forceBuildAll = args.force_all
@@ -1406,6 +1433,22 @@ if Linux():
     for lib in excludes:
         requiredDependencies.remove(lib)
     # TODO: requiredDependencies += [NRD, NRI]
+
+if context.usdRoot:
+    # 4AIAD: the host provides OpenUSD; the Autodesk USD fork is only required by the HGI
+    # (Vulkan/Metal) backend, which is not built here.
+    if not Windows():
+        PrintError("--usd-root is only supported on Windows (DirectX backend).")
+        sys.exit(1)
+    if not os.path.isfile(os.path.join(context.usdRoot, "pxrConfig.cmake")):
+        PrintError("--usd-root: pxrConfig.cmake not found in " + context.usdRoot)
+        sys.exit(1)
+    for lib in [USD, OPENSUBDIV]:
+        requiredDependencies.remove(lib)
+
+if context.noOIIO:
+    # 4AIAD: OpenImageIO pulls OpenColorIO and its local dependency chain; AIAD does not need it.
+    requiredDependencies.remove(OPENIMAGEIO)
 
 if Windows():
     requiredDependencies += [DXC, NRD, NRI]

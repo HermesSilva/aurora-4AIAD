@@ -12,7 +12,7 @@
                     }
                 }
             },
-            "LibraryPath": "../@PLUG_INFO_LIBRARY_NAME@",
+            "LibraryPath": "@PLUG_INFO_LIBRARY_PATH@",
             "Name": "hdAurora",
             "ResourcePath": "resources",
             "Root": "..",

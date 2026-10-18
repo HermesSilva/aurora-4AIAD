@@ -4,7 +4,9 @@
 #include "HdAuroraRenderDelegate.h"
 #include "HdAuroraRenderPass.h"
 #include "HdAuroraTokens.h"
+#if !defined(HDAURORA_NO_GL)
 #include <pxr/imaging/garch/glApi.h>
+#endif
 
 HdAuroraRenderPass::HdAuroraRenderPass(HdRenderIndex* index, HdRprimCollection const& collection,
     HdAuroraRenderDelegate* renderDelegate) :
@@ -71,6 +73,7 @@ void HdAuroraRenderPass::_Execute(
             _ownedRenderBuffer =
                 std::make_shared<HdAuroraRenderBuffer>(SdfPath::EmptyPath(), _owner);
 
+#if !defined(HDAURORA_NO_GL)
             // create openGL frame buffer texture
             char imageData[4 * 4 * 4];
             glGenTextures(1, &_frameBufferTexture);
@@ -85,6 +88,7 @@ void HdAuroraRenderPass::_Execute(
 
             glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
+#endif // !HDAURORA_NO_GL
 
             // Create a set of AOV bindings from our render buffer
             HdRenderPassAovBinding colorAov;
@@ -214,6 +218,7 @@ void HdAuroraRenderPass::_Execute(
     // Use HdAuroraRenderPass::IsConverged() here as it supports Rasterization and Path Tracing
     _renderBuffers[HdAovTokens->color]->SetConverged(IsConverged());
 
+#if !defined(HDAURORA_NO_GL)
     // If render pass owns the render buffer, we are responsible for doing the BLIT to the GL FBO
     if (_ownedRenderBuffer)
     {
@@ -234,4 +239,5 @@ void HdAuroraRenderPass::_Execute(
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+#endif // !HDAURORA_NO_GL
 }

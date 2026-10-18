@@ -413,8 +413,16 @@ if(ENABLE_HGI_BACKEND)
 
 endif()
 
+# 4AIAD: static library (no DllMain, no version resource) when embedded in AIAD.
+set(AURORA_LIBRARY_TYPE SHARED)
+if(AIAD_INTEGRATION)
+    set(AURORA_LIBRARY_TYPE STATIC)
+    list(REMOVE_ITEM COMMON_SOURCE "Source/DLL.cpp")
+    list(FILTER VERSION_FILES EXCLUDE REGEX "\\.rc$")
+endif()
+
 # Create shared library for the project containing all the sources.
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME} ${AURORA_LIBRARY_TYPE}
     ${API_HEADERS}
     ${COMMON_SOURCE}
     ${DIRECTX_SOURCE}
@@ -659,6 +667,10 @@ if(ENABLE_HGI_BACKEND AND NOT APPLE)
     list(REMOVE_ITEM AURORA_COMPILE_DEFINITIONS _HAS_STD_BYTE=0)
 endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${AURORA_COMPILE_DEFINITIONS})
+if(AIAD_INTEGRATION)
+    # 4AIAD: consumers of the static library must not use dllimport.
+    target_compile_definitions(${PROJECT_NAME} PUBLIC AURORA_STATIC)
+endif()
 
 if(ENABLE_DIRECTX_BACKEND)
     # Compile the standalone compute shaders.

@@ -158,6 +158,11 @@ def IsVisualStudio2022OrGreater():
     VISUAL_STUDIO_2022_VERSION = (17, 0)
     return IsVisualStudioVersionOrGreater(VISUAL_STUDIO_2022_VERSION)
 
+def IsVisualStudio2026OrGreater():
+    # 4AIAD: Visual Studio 2026 (version 18, MSVC toolset v145).
+    VISUAL_STUDIO_2026_VERSION = (18, 0)
+    return IsVisualStudioVersionOrGreater(VISUAL_STUDIO_2026_VERSION)
+
 def GetPythonInfo(context):
     """Returns a tuple containing the path to the Python executable, shared
     library, and include directory corresponding to the version of Python
@@ -407,6 +412,8 @@ def RunCMake(context, clean, instFolder= None, extraArgs = None,  configExtraArg
 
     if generator is not None:
         generator = '-G "{gen}"'.format(gen=generator)
+    elif IsVisualStudio2026OrGreater():
+        generator = '-G "Visual Studio 18 2026" -A x64'
     elif IsVisualStudio2022OrGreater():
         generator = '-G "Visual Studio 17 2022" -A x64'
     elif IsVisualStudio2019OrGreater():
@@ -759,6 +766,14 @@ list(APPEND AURORA_DEPENDENCIES "${{{packageName}_ROOT}}")
     packages = ""
     for ext in externals:
         packages += package.format(packageName=ext.packageName, installFolder=ext.installFolder)
+    if getattr(context, "usdRoot", None):
+        # 4AIAD: OpenUSD comes from the host application, not from EXTERNALS_ROOT.
+        packages += """
+if(NOT DEFINED pxr_ROOT)
+    set(pxr_ROOT "{usdRoot}")
+endif()
+list(APPEND AURORA_DEPENDENCIES "${{pxr_ROOT}}")
+""".format(usdRoot=pathlib.Path(context.usdRoot).as_posix())
 
     externalConfig = os.path.join(context.auroraSrcDir, "Scripts", "cmake", "externalsConfig.cmake")
     print("Written CMake config file: "+externalConfig)

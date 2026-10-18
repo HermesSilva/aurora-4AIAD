@@ -35,6 +35,10 @@
 #pragma warning(pop)
 
 // API import symbol.
+#if defined(AURORA_STATIC) && !defined(AURORA_API)
+// 4AIAD: Aurora linked statically into the host.
+#define AURORA_API
+#endif
 #if !defined(AURORA_API)
 #ifdef WIN32
 #define AURORA_API __declspec(dllimport)

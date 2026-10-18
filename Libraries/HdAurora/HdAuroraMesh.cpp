@@ -215,7 +215,8 @@ void HdAuroraMesh::RebuildAuroraInstances(HdSceneDelegate* delegate)
             int count = (int)buffer.GetNumElements();
             // Triangulate the STs (should produce an ST for each index)
             // v26.08 returns HdMeshComputationResult (nodiscard); older versions return bool.
-#if PXR_VERSION >= 2608
+    // 4AIAD: the enum already exists in OpenUSD 25.11.
+#if PXR_VERSION >= 2511
             (void)meshUtil.ComputeTriangulatedFaceVaryingPrimvar(
                 buffer.GetData(), count, buffer.GetTupleType().type, &pvNormals);
 #else
@@ -687,7 +688,8 @@ bool HdAuroraMesh::readSTs(VtValue* stOut, HdSceneDelegate* delegate, HdMeshUtil
 
     // Triangulate the STs (should produce an ST for each index)
     // v26.08 returns HdMeshComputationResult; older versions return bool.
-#if PXR_VERSION >= 2608
+    // 4AIAD: the enum already exists in OpenUSD 25.11.
+#if PXR_VERSION >= 2511
     return meshUtil.ComputeTriangulatedFaceVaryingPrimvar(
         buffer.GetData(), (int)buffer.GetNumElements(), buffer.GetTupleType().type, stOut)
         == HdMeshComputationResult::Success;

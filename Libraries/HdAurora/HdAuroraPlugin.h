@@ -31,6 +31,10 @@ public:
 #if PXR_VERSION >= 2608
     bool IsSupported(const HdRendererCreateArgsSchema& rendererCreateArgs,
                      std::string* reasonWhyNot = nullptr) const override;
+#elif PXR_VERSION >= 2511
+    // 4AIAD: OpenUSD 25.11 makes IsSupported(HdRendererCreateArgs const&, ...) pure virtual.
+    bool IsSupported(HdRendererCreateArgs const& rendererCreateArgs,
+                     std::string* reasonWhyNot = nullptr) const override;
 #elif HD_API_VERSION >= 46
     virtual bool IsSupported(bool gpuEnabled = true) const override;
 #else

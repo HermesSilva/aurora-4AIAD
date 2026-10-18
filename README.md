@@ -20,16 +20,34 @@ This fork adds those without removing what Aurora already does.
 
 ## What changes (and why)
 
+### Done (branch `main-4AIAD`)
+
 | Change | Why |
 |--------|-----|
-| **Raster "modeling" mode** next to the path-traced "render" mode, on the same D3D12 device and scene | interactive, deterministic, noise-free viewport for modeling |
-| **Edges and curves** (`basisCurves`) drawn as screen-space lines | Aurora only accepts triangles; B-rep edges and sketches are essential in CAD |
+| CMake option **`AIAD_INTEGRATION`** (off by default): `Aurora` and `HdAurora` become **static libraries**; `HdAurora` is built **without OpenGL, GLEW and hdx** | AIAD links everything statically into one executable and owns the D3D12 device; OpenUSD is built without a GPU backend (no Storm/hdx) |
+| `HdAuroraStaticRegistration.cpp`: registers the renderer plugin through `TF_REGISTRY_FUNCTION` | the shared build registers it from `DllMain`, which a static library does not have |
+| `HdAuroraRenderBuffer`: local `HdFormat`→`HgiFormat` mapping, optional `Hgi`, no GL texture path when `HDAURORA_NO_GL` | the host reads the shared D3D12 texture or `Map()`s the pixels itself |
+| `HdAuroraPlugin`/`HdAuroraMesh`: OpenUSD **25.11** API (`IsSupported(HdRendererCreateArgs const&)`, `HdMeshComputationResult`) | upstream gates these on 26.08, but they already exist in 25.11 |
+| `installExternals.py`: `--usd-root`, `--materialx-static`, `--no-oiio`; Visual Studio 2026 / **MSVC v145**; pin fix for `pystring` in OpenImageIO 3.1.13 | build the externals with AIAD's toolchain and without the Autodesk USD fork |
+| `CMAKE_CURRENT_SOURCE_DIR` for the version header | lets Aurora be included with `add_subdirectory()` |
+
+Verified (spike S3b in AIAD): a USD BRep `BrepArray` tessellated by `hdUsdBrep` is path-traced
+with DXR through Hydra, in a single statically linked executable (static OpenUSD 25.11), on an
+RTX 2060 SUPER.
+
+### Planned
+
+| Change | Why |
+|--------|-----|
+| **Raster "modeling" mode** next to the path-traced mode, on the same D3D12 device and scene | interactive, deterministic, noise-free viewport for modeling |
+| **Edges and curves** (`basisCurves`) drawn as screen-space lines | Aurora only accepts triangles; B-rep edges (already produced by `hdUsdBrep`) are essential in CAD |
 | **ID buffer** (prim + element id) and selection highlight | picking faces/edges/bodies, also used to assign loads and supports in simulation studies |
-| **Host-provided device**: the D3D12 device and queues come from the application (`aiad_gpu`), on the same adapter (LUID) as CUDA | lets simulation results flow from CUDA to the viewport without copies |
-| **Result fields from CUDA** via D3D12 external memory and fences | color maps of stress, temperature, fields, pressure |
-| **Denoiser** for the path-traced mode | upstream lists it as planned (NVIDIA Real-Time Denoisers) |
-| **OpenPBR** materials through MaterialX, in addition to Standard Surface | AIAD uses OpenPBR as its appearance model |
-| Build with **MSVC v145** against **OpenUSD 25.11** (the build shipped with NVIDIA USD BRep) | one toolchain and one OpenUSD for the whole application |
+| Face-varying normals from `hdUsdBrep` | today they trigger "normal array length does not match" and faceted shading |
+| **Host-provided device** and **CUDA result fields** via D3D12 external memory | simulation results flow from CUDA to the viewport without copies |
+| **OpenPBR** materials | AIAD uses OpenPBR as its appearance model |
+
+Upstream already provides the MaterialX → **Slang** generator and the **NRD** denoiser, which were
+initially on this list.
 
 B-rep solids (`BrepArray` from the `omniSolid` schema) reach this delegate as meshes through the
 `hdUsdBrep` Hydra plugin from [NVIDIA USD BRep](https://github.com/NVIDIA-Omniverse/usd-brep), so no
@@ -37,12 +55,6 @@ tessellation code is added here.
 
 Non-Windows backends (Metal, Vulkan / HGI) are left as they are upstream and are not maintained by
 this fork.
-
-## Status
-
-**No source changes yet.** At this point the only differences from upstream are this README, the
-original README renamed to `README.upstream.md`, and the link to it in `Doc/Plasma.md`. The work
-above is planned in the AIAD roadmap (milestone F1: raster mode; later: denoiser, OpenPBR).
 
 ## Branches
 
