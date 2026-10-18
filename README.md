@@ -1,130 +1,57 @@
-# Aurora
-**Aurora** is a real-time path tracing renderer that leverages GPU hardware ray tracing. As a real-time renderer, it is intended to support rapid design iteration in a real-time viewport, which differs from a "final frame" production renderer like [Autodesk Arnold](https://www.arnoldrenderer.com). Aurora has a USD Hydra render delegate called [HdAurora](Doc/HdAurora.md), which allows it to be used from a USD Hydra scene delegate. It can also be used directly through its own API, which is demonstrated with a standalone sample application called [Plasma](Doc/Plasma.md).
+# Aurora for Tootega AIAD
 
-Aurora is developed and maintained by Autodesk. The software and this documentation are a work-in-progress and under active development. The contents of this repository are fully open source under [the Apache license](LICENSE.md), with [feature requests and code contributions](CONTRIBUTING.md) welcome!
+This is a fork of **[Autodesk/Aurora](https://github.com/Autodesk/Aurora)**, maintained for
+**Tootega AIAD** (Artificial Intelligence-Aided Design), a Windows-only CAD/CAE tool built on
+OpenUSD, DirectX 12 and CUDA.
 
-Below you can learn about features, system requirements, how to build Aurora, how to run it, and access additional documentation.
+> The original README is kept unchanged in **[README.upstream.md](README.upstream.md)**.
+> Everything about Aurora itself (features, requirements, build, usage) is documented there.
 
-<img src="Doc/sample.jpg" alt="Sample screenshot" style="zoom:50%;" />
+## Why this fork exists
 
-<p align="center"><i>Screenshots of <a href="#sample-data">the Autodesk Telescope model</a> rendered with Aurora. Model courtesy of <a href="https://robertoziche.com">Roberto Ziche</a>.</i></p>
+AIAD needs a Hydra render delegate that runs on **DirectX 12**. OpenUSD's own renderer (Storm)
+only targets OpenGL, Metal and Vulkan, so it does not fit. Aurora already combines Hydra
+(`HdAurora`), Direct3D 12 / DXR and MaterialX under the Apache-2.0 license, which makes it the
+best starting point.
 
-## Features
+Aurora is a real-time **path tracer**, though. A CAD viewport also needs things a path tracer
+does not provide: sharp edges drawn as lines, a noise-free interactive view, and per-face picking.
+This fork adds those without removing what Aurora already does.
 
-- Path tracing and the global effects that come with it: soft shadows, reflections, refractions, bounced light, and more.
-- Interactive performance for complex scenes, using hardware ray tracing in modern GPUs.
-- [Autodesk Standard Surface](https://autodesk.github.io/standard-surface) materials defined with [MaterialX](https://materialx.org) documents, which can represent a wide variety of real-world materials with physically-based shading. Also, independent layers of materials are supported, which can be used to implement decals.
-- Environment lighting with a wrap-around lat-long image.
-- Triangle geometry with object instancing.
-- A USD Hydra render delegate ([HdAurora](Doc/HdAurora.md)) and standalone sample application ([Plasma](Doc/Plasma.md)).
+## What changes (and why)
 
-... with new features and enhancements to performance and quality planned. This will include denoising with [NVIDIA Real-Time Denoisers](https://developer.nvidia.com/rtx/ray-tracing/rt-denoisers), support for alternative material models, discrete light sources, and more.
+| Change | Why |
+|--------|-----|
+| **Raster "modeling" mode** next to the path-traced "render" mode, on the same D3D12 device and scene | interactive, deterministic, noise-free viewport for modeling |
+| **Edges and curves** (`basisCurves`) drawn as screen-space lines | Aurora only accepts triangles; B-rep edges and sketches are essential in CAD |
+| **ID buffer** (prim + element id) and selection highlight | picking faces/edges/bodies, also used to assign loads and supports in simulation studies |
+| **Host-provided device**: the D3D12 device and queues come from the application (`aiad_gpu`), on the same adapter (LUID) as CUDA | lets simulation results flow from CUDA to the viewport without copies |
+| **Result fields from CUDA** via D3D12 external memory and fences | color maps of stress, temperature, fields, pressure |
+| **Denoiser** for the path-traced mode | upstream lists it as planned (NVIDIA Real-Time Denoisers) |
+| **OpenPBR** materials through MaterialX, in addition to Standard Surface | AIAD uses OpenPBR as its appearance model |
+| Build with **MSVC v145** against **OpenUSD 25.11** (the build shipped with NVIDIA USD BRep) | one toolchain and one OpenUSD for the whole application |
 
-## System Requirements
+B-rep solids (`BrepArray` from the `omniSolid` schema) reach this delegate as meshes through the
+`hdUsdBrep` Hydra plugin from [NVIDIA USD BRep](https://github.com/NVIDIA-Omniverse/usd-brep), so no
+tessellation code is added here.
 
-### Operating System
+Non-Windows backends (Metal, Vulkan / HGI) are left as they are upstream and are not maintained by
+this fork.
 
-Aurora is officially supported on **Windows 11**, **macOS 15.5** and **Ubuntu 24.04**. Windows 10/other macOS versions/other Linux distributions may work, but are not guaranteed.
+## Status
 
-To run Aurora, the latest GPU drivers from [NVIDIA](https://www.nvidia.com/download/index.aspx), [AMD](https://www.amd.com/en/support), or [Intel](https://www.intel.com/content/www/us/en/download-center/home.html) are recommended as ray tracing API support is being actively improved. No other software is required to run Aurora.
+**No source changes yet.** At this point the only differences from upstream are this README, the
+original README renamed to `README.upstream.md`, and the link to it in `Doc/Plasma.md`. The work
+above is planned in the AIAD roadmap (milestone F1: raster mode; later: denoiser, OpenPBR).
 
-### Build Software
+## Branches
 
-Software required for building Aurora can be found in [the build instructions](Doc/Build.md).
+| Branch | Content |
+|--------|---------|
+| `main` | mirror of `Autodesk/Aurora` `main`, never modified |
+| `main-4AIAD` (default) | `main` + the changes listed above, rebased periodically onto upstream |
 
-### GPU
+## License
 
-Aurora requires a GPU with hardware ray tracing support, either through **DirectX Raytracing** (DXR) on Windows, or **Hgi Ray Tracing** on Windows/macOS/Linux. These include, but are not limited to:
-
-- **NVIDIA GPUs with native ray tracing support** include any GPU with "RTX" in the brand name, including mobile GPUs. This includes:
-  - The GeForce RTX series, such as the GeForce RTX 2060.
-  - The Quadro RTX series, such as the Quadro RTX 4000.
-  - The RTX A series, such as the RTX A2000.
-- **NVIDIA GPUs with compute-based support** include any GPU with the "Pascal" microarchitecture and at least 6 GB of RAM. Note that these GPUs will perform substantially slower with GPU ray tracing due to the lack of native ray tracing support. This includes:
-  - The GeForce 10 series, such as the GeForce GTX 1080.
-  - The Quadro P series, such as the Quadro P4000.
-- **AMD GPUs with native ray tracing support** include any GPU with the "RDNA 2" microarchitecture. This includes:
-  - The RX 6000 and RX 7000 series, including the mobile RX 6000M series.
-  - The Radeon PRO W6000 series, such as the Radeon PRO W6800.
-  - The Ryzen 7 6000 series of mobile processors, which have 600M series integrated GPUs.
-- **Intel GPUs with native ray tracing support** include any GPU with “Xe” architecture and DX12 support. This includes:
-  - The Intel™ Arc® Pro A-series for workstations, such as the Intel Arc Pro A40 and Intel Arc Pro A50.
-  - The Intel™ Arc® A-series, such as the Intel Arc A380 and Intel Arc A770.
-- **Apple silicon M1 and above**
-
-See [the build instructions](Doc/Build.md) for information on enabling support for DirectX Raytracing or Hgi Ray Tracing.
-
-NOTE: Vulkan is primarily validated on NVIDIA GPUs. Software Vulkan paths such as
-lavapipe can still be useful for Linux build and smoke-test coverage, but they
-are much slower than GPU-backed runs.
-
-## Quick Start
-
-Follow these steps to build Aurora and its dependencies and run the sample application, Plasma.
-
-More details on building Aurora can be found [here](Doc/Build.md), including options and possible issues you may encounter.
-
-#### Windows
-
-**Prerequisites:** Visual Studio 2022, CMake 3.29.3+, Python 3.11+. See [the build documentation](Doc/Build.md) for details.
-
-```bat
-python Scripts\installExternals.py ..\AuroraExt\Release
-cmake -S . -B Build -D CMAKE_BUILD_TYPE=Release -D EXTERNALS_ROOT=..\AuroraExt\Release -G "Visual Studio 17 2022" -A x64
-cmake --build Build --config Release
-cd Build\bin\Release
-Plasma.exe
-```
-
-#### macOS
-
-**Prerequisites:** Xcode 16.3+ with Command Line Tools, CMake 3.29.3+, Python 3.11+. See [the build documentation](Doc/Build.md) for details.
-
-```bash
-python3 Scripts/installExternals.py ../AuroraExt/macos/Release --build-target=native
-cmake -S . -B Build -D CMAKE_BUILD_TYPE=Release -D EXTERNALS_ROOT=../AuroraExt/macos/Release -G Xcode
-cmake --build Build --config Release
-cd Build/bin/Release
-open ./Plasma.app
-```
-
-#### Linux (Ubuntu 24.04)
-
-**Prerequisites:** GCC/G++ or Clang, CMake 3.29.3+, Python 3.11+, and system libraries listed in [the build documentation](Doc/Build.md).
-
-```bash
-python3 Scripts/installExternals.py Externals/linux/Release
-cmake -S . -B Build
-cmake --build Build
-cd Build/bin/Release
-./Plasma --output {OUTPUT_IMAGE_FILE.png} --scene {INPUT_SCENE_FILE.obj}
-```
-
-## Running Aurora
-
-Aurora can be exercised in three ways:
-
-- Using the [Plasma](Doc/Plasma.md) sample application, either interactively or on the command line.
-- Using the [HdAurora](Doc/HdAurora.md) render delegate, through a compliant USD Hydra-based application like [Usdview](https://graphics.pixar.com/usd/release/toolset.html) or certain design applications.
-- Using the Aurora unit tests, which use the [Google Test](https://github.com/google/googletest) framework: [Foundation](Tests/Foundation), [AuroraInternals](Tests/AuroraInternals), and [Aurora](Tests/Aurora).
-
-All of these are built with Aurora, and binaries can be found in the build output directory after following the build instructions.
-
-## Sample Data
-
-The Autodesk Telescope model shown above was developed by [Roberto Ziche](https://robertoziche.com), and was inspired by Celestron products. It is made available for use with Aurora or any another application under [the CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0). You can [download a package](https://drive.google.com/file/d/1RM09qDOGcRinLJTbXCsiRfQrHmKA-1aN/view?usp=share_link) containing an OBJ version for use with Plasma, or a USD version for use with Usdview or other applications.
-
-Other recommended sources of data include the [McGuire Computer Graphics Archive](https://casual-effects.com/data) and the [ASWF USD Working Group](https://wiki.aswf.io/display/WGUSD/Sample+Assets).
-
-## Documentation
-
-Available documentation can by found in the [Doc](Doc) directory. This includes the following:
-
-- [Building](Doc/Build.md): instructions for building Aurora, including options.
-- [Plasma](Doc/Plasma.md): instructions for using the sample application.
-- [HdAurora](Doc/HdAurora.md): instructions for using the Hydra render delegate.
-- [Coding standards](Doc/CodingStandards.md).
-
-More information about contributions and licensing can be found here:
-- [How to contribute to the project](CONTRIBUTING.md).
-- [The software license](LICENSE.md), which is the Apache License 2.0.
+Same as upstream: **Apache License 2.0** (see [LICENSE.md](LICENSE.md)). Changes made in this fork
+are released under the same license.

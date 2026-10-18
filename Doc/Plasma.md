@@ -6,7 +6,7 @@
 
 ## System Requirements
 
-Plasma has the same [system requirements](../README.md) as Aurora. In particular, a GPU with support for DirectX Raytracing, Vulkan Ray Tracing or MetalRT is required.
+Plasma has the same [system requirements](../README.upstream.md) as Aurora. In particular, a GPU with support for DirectX Raytracing, Vulkan Ray Tracing or MetalRT is required.
 
 At this time, interactive use of Plasma is only supported on Windows and MacOS. For Linux, command-line single image rendering is available as described below, and interactive support is coming soon.
 
