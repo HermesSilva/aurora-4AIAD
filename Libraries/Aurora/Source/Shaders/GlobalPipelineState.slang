@@ -161,6 +161,22 @@ float4 computeMotionVector(float3 worldPos, float currentViewZ)
     return float4(motionXY, currentViewZ - prevViewZ, 0.0f);
 }
 
+// 4AIAD: motion vector of a surface point that moved with its instance: prevWorldPos is where it was in
+// the previous frame. Static points (prevWorldPos == worldPos) give computeMotionVector.
+float4 computeObjectMotionVector(float3 worldPos, float3 prevWorldPos, float currentViewZ)
+{
+    float prevViewZ   = computeViewZ(gFrameData.cameraInvViewPrev, prevWorldPos);
+    float4 currentClip = mul(gFrameData.cameraViewProj, float4(worldPos, 1.0f));
+    float4 prevClip    = mul(gFrameData.cameraViewProjPrev, float4(prevWorldPos, 1.0f));
+    float2 currentNDC  = currentClip.xy / max(abs(currentClip.w), 1e-6f);
+    float2 prevNDC     = prevClip.xy / max(abs(prevClip.w), 1e-6f);
+    float2 screenSize  = float2(DispatchRaysDimensions().xy);
+    float2 currentScreen = (float2(currentNDC.x, -currentNDC.y) * 0.5f + 0.5f) * screenSize;
+    float2 prevScreen    = (float2(prevNDC.x, -prevNDC.y) * 0.5f + 0.5f) * screenSize;
+
+    return float4(prevScreen - currentScreen, currentViewZ - prevViewZ, 0.0f);
+}
+
 // Environment motion vector: ray direction as homogeneous vector (w=0) captures camera rotation
 // while ignoring translation. Zero would indicate static background.
 float4 computeSkyMotionVector(float3 rayDirection)

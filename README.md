@@ -34,6 +34,7 @@ This fork adds those without removing what Aurora already does.
 | `HdAuroraMesh`: primvars read only when they hold the expected type | `UncheckedGet` on an empty value (a mesh without normals) crashed the Hydra sync threads |
 | `HdAuroraMesh::Sync`: instances are added when there are fewer than needed (was `>`) | a hidden mesh on a moving body took the transform-only path with a null resource and crashed |
 | `PTRenderBuffer::data()`: the caller's stride stays the host (tight) pitch; no stale pointer after a resize | the padded GPU row pitch made readers overrun when the width was not 256-byte aligned |
+| Motion vectors of moving instances: `PTScene` keeps each instance's transform of the previous frame next to the current one (`gTransformMatrixBuffer`), the closest-hit shader reprojects the hit point with it (`computeObjectMotionVector`) | the motion vectors treated every surface as static, so the denoiser (NRD) and the temporal resolve smeared and scrambled parts moving in an animated scene |
 
 Verified (spike S3b in AIAD): a USD BRep `BrepArray` tessellated by `hdUsdBrep` is path-traced
 with DXR through Hydra, in a single statically linked executable (static OpenUSD 25.11), on an

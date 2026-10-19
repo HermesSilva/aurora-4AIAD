@@ -210,8 +210,11 @@ void INSTANCE_CLOSEST_HIT_SHADER(
                 gBaseColorMetalness[screenCoords] = float4(material.baseColor, material.metalness);
             #endif
 
-                // 2.5D motion for this (static) surface point; see computeMotionVector.
-                gMotionVectors[screenCoords] = computeMotionVector(hitWorldPos, viewZ);
+                // 2.5D motion for this surface point, moved by its instance since the previous frame
+                // (4AIAD: moving parts of an animated scene; static instances give the camera motion).
+                float3 hitObjectPos  = mul(WorldToObject3x4(), float4(hitWorldPos, 1.0f));
+                float3 prevWorldPos  = mul(previousTransformMatrix(InstanceID()), float4(hitObjectPos, 1.0f));
+                gMotionVectors[screenCoords] = computeObjectMotionVector(hitWorldPos, prevWorldPos, viewZ);
             }
 
             // Store the NDC depth value, if enabled. The value is only stored if the first sample was

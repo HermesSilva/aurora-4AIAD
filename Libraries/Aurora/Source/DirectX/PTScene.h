@@ -213,6 +213,8 @@ private:
     void updateDescriptorHeap();
     void updateShaderTables();
     ID3D12ResourcePtr buildTLAS();
+    // 4AIAD: writes [current, previous frame] transforms per instance (motion vectors of moving instances).
+    void writeTransformMatrices();
     InstanceData createInstanceData(const PTInstance& instance);
 
     /*** Private Variables ***/
@@ -241,6 +243,8 @@ private:
     TransferBuffer _globalInstanceBuffer;
     TransferBuffer _layerGeometryBuffer;
     TransferBuffer _transformMatrixBuffer;
+    map<const PTInstance*, mat4> _previousTransforms; // 4AIAD: transforms rendered last frame
+    bool _transformsMoving = false;                   // 4AIAD: some previous != current in the buffer
 
     /*** DirectX 12 Objects ***/
 

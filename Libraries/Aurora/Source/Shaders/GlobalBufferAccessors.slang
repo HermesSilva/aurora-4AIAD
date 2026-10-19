@@ -83,9 +83,21 @@ int instanceLayerUVBufferOffset(int instanceOffset, int layerIdx)
 }
 
 // Get row-major 4x3 world transform matrix for the BLAS indicated by index
+// 4AIAD: the buffer holds two matrices per instance, the current one and the previous frame's.
 float3x4 transformMatrixForBLAS(int blasIndex)
 {
-    int startOffset = blasIndex * kTransformMatrixSize;
+    int startOffset = blasIndex * kTransformMatrixSize * 2;
+    return float3x4(
+        asfloat(gTransformMatrixBuffer.Load4(startOffset + 4 * 0)),
+        asfloat(gTransformMatrixBuffer.Load4(startOffset + 4 * 4)),
+        asfloat(gTransformMatrixBuffer.Load4(startOffset + 4 * 8))
+    );
+}
+
+// 4AIAD: the instance's world transform in the previous frame (motion vectors of moving instances).
+float3x4 previousTransformMatrix(int instanceIndex)
+{
+    int startOffset = instanceIndex * kTransformMatrixSize * 2 + kTransformMatrixSize;
     return float3x4(
         asfloat(gTransformMatrixBuffer.Load4(startOffset + 4 * 0)),
         asfloat(gTransformMatrixBuffer.Load4(startOffset + 4 * 4)),
@@ -111,6 +123,7 @@ float3x4 transformMatrixForBLAS(int blasIndex)
                     0.0, 1.0, 0.0, 0.0,
                     0.0, 0.0, 1.0, 0.0);
 }
+float3x4 previousTransformMatrix(int instanceIndex) { return transformMatrixForBLAS(instanceIndex); }
 #endif // DIRECTX
 
 float2 computeLayerUV(int instanceOffset, int layerIdx, ShadingData shading)

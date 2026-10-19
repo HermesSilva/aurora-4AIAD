@@ -1033,7 +1033,16 @@ void PTScene::updateResources()
     // tables.  Will only do anything if the relevant pointers have been cleared.
     updateAccelerationStructure();
     updateDescriptorHeap();
+    const bool tablesRebuilt = !_pHitGroupShaderTable;
     updateShaderTables();
+
+    // 4AIAD: the first frame after a motion stops: the previous transforms become the current ones,
+    // so that still instances have no motion left in their motion vectors.
+    if (!tablesRebuilt && _transformsMoving && _transformMatrixBuffer.size >= _transformMatrixBufferSize)
+    {
+        writeTransformMatrices();
+        _pRenderer->uploadTransferBuffers();
+    }
 }
 
 void PTScene::clearDesciptorHeap()
@@ -1152,8 +1161,9 @@ void PTScene::updateAccelerationStructure()
     // Set the required instance buffer size.
     _instanceBufferSize      = instanceBufferOffset;
     _layerGeometryBufferSize = layerGeomtryBufferOffset;
+    // 4AIAD: two matrices per instance, the current one and the previous frame's.
     _transformMatrixBufferSize =
-        _instances.active().resources<PTInstance>().size() * kTransformMatrixSize;
+        _instances.active().resources<PTInstance>().size() * kTransformMatrixSize * 2;
 
     // Build the top-level acceleration structure (TLAS).
     _pAccelStructure = buildTLAS();
@@ -1270,24 +1280,7 @@ void PTScene::updateShaderTables()
         }
 
         // Fill in the global transform matrix buffer.
-        uint8_t* pMatrixDataStart = _transformMatrixBuffer.map();
-        int mtxOffset             = 0;
-        for (PTInstance& instance : _instances.active().resources<PTInstance>())
-        {
-            // Get pointer to instance data in buffer.
-            uint8_t* pInstanceData = pMatrixDataStart + mtxOffset;
-            float* pData           = (float*)pInstanceData;
-
-            // Copy transposed transform matrix into buffer.
-            mat4 matrix = transpose(instance.transform());
-            ::memcpy_s(pData, kTransformMatrixSize, &matrix, kTransformMatrixSize);
-
-            // Move offset to next matrix in buffer.
-            mtxOffset += kTransformMatrixSize;
-        }
-        AU_ASSERT(mtxOffset == _transformMatrixBufferSize, "Buffer size mismatch");
-        // Unmap buffer.
-        _transformMatrixBuffer.unmap();
+        writeTransformMatrices();
 
         // Fill in the global instance data buffer.
         uint8_t* pInstanceDataStart = _globalInstanceBuffer.map();
@@ -1455,6 +1448,32 @@ void PTScene::updateShaderTables()
         // commands.
         _pRenderer->uploadTransferBuffers();
     }
+}
+
+void PTScene::writeTransformMatrices()
+{
+    // 4AIAD: per instance (in TLAS order, = InstanceID), the transposed transform and the one rendered
+    // in the previous frame; the latter becomes the current one for the next frame.
+    uint8_t* pMatrixDataStart = _transformMatrixBuffer.map();
+    int mtxOffset             = 0;
+    bool moving               = false;
+    map<const PTInstance*, mat4> rendered;
+    for (PTInstance& instance : _instances.active().resources<PTInstance>())
+    {
+        mat4 matrix   = transpose(instance.transform());
+        auto previous = _previousTransforms.find(&instance);
+        mat4 before   = previous == _previousTransforms.end() ? matrix : previous->second;
+        moving        = moving || before != matrix;
+        ::memcpy_s(pMatrixDataStart + mtxOffset, kTransformMatrixSize, &matrix, kTransformMatrixSize);
+        ::memcpy_s(pMatrixDataStart + mtxOffset + kTransformMatrixSize, kTransformMatrixSize, &before,
+            kTransformMatrixSize);
+        mtxOffset += kTransformMatrixSize * 2;
+        rendered[&instance] = matrix;
+    }
+    AU_ASSERT(mtxOffset == _transformMatrixBufferSize, "Buffer size mismatch");
+    _transformMatrixBuffer.unmap();
+    _previousTransforms = std::move(rendered);
+    _transformsMoving   = moving;
 }
 
 ID3D12ResourcePtr PTScene::buildTLAS()
