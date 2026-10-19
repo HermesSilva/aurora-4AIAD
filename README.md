@@ -30,6 +30,9 @@ This fork adds those without removing what Aurora already does.
 | `HdAuroraPlugin`/`HdAuroraMesh`: OpenUSD **25.11** API (`IsSupported(HdRendererCreateArgs const&)`, `HdMeshComputationResult`) | upstream gates these on 26.08, but they already exist in 25.11 |
 | `installExternals.py`: `--usd-root`, `--materialx-static`, `--no-oiio`; Visual Studio 2026 / **MSVC v145**; pin fix for `pystring` in OpenImageIO 3.1.13 | build the externals with AIAD's toolchain and without the Autodesk USD fork |
 | `CMAKE_CURRENT_SOURCE_DIR` for the version header | lets Aurora be included with `add_subdirectory()` |
+| `HdAuroraMesh`: primvars read only when they hold the expected type | `UncheckedGet` on an empty value (a mesh without normals) crashed the Hydra sync threads |
+| `HdAuroraMesh::Sync`: instances are added when there are fewer than needed (was `>`) | a hidden mesh on a moving body took the transform-only path with a null resource and crashed |
+| `PTRenderBuffer::data()`: the caller's stride stays the host (tight) pitch; no stale pointer after a resize | the padded GPU row pitch made readers overrun when the width was not 256-byte aligned |
 
 Verified (spike S3b in AIAD): a USD BRep `BrepArray` tessellated by `hdUsdBrep` is path-traced
 with DXR through Hydra, in a single statically linked executable (static OpenUSD 25.11), on an

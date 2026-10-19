@@ -107,18 +107,22 @@ void HdAuroraMesh::RebuildAuroraInstances(HdSceneDelegate* delegate)
 
     // Create vertex data object, that will exist until the renderer has read the vertex data.
     _pVertexData          = make_unique<HdAuroraMeshVertexData>();
-    _pVertexData->points  = delegate->Get(id, HdTokens->points).UncheckedGet<VtVec3fArray>();
-    _pVertexData->normals = delegate->Get(id, HdTokens->normals).UncheckedGet<VtVec3fArray>();
-    if (auto&& tangentValue = delegate->Get(id, pxr::TfToken("tangents")); !tangentValue.IsEmpty())
+    // 4AIAD: check the held type; UncheckedGet on an empty value (e.g. a mesh without normals) is
+    // undefined behaviour and crashed in the Hydra sync threads.
+    if (auto&& pointsValue = delegate->Get(id, HdTokens->points); pointsValue.IsHolding<VtVec3fArray>())
+        _pVertexData->points = pointsValue.UncheckedGet<VtVec3fArray>();
+    if (auto&& normalsValue = delegate->Get(id, HdTokens->normals); normalsValue.IsHolding<VtVec3fArray>())
+        _pVertexData->normals = normalsValue.UncheckedGet<VtVec3fArray>();
+    if (auto&& tangentValue = delegate->Get(id, pxr::TfToken("tangents")); tangentValue.IsHolding<VtVec3fArray>())
         _pVertexData->tangents = tangentValue.UncheckedGet<VtVec3fArray>();
-    if (auto&& uvValue = delegate->Get(id, pxr::TfToken("map1")); !uvValue.IsEmpty())
+    if (auto&& uvValue = delegate->Get(id, pxr::TfToken("map1")); uvValue.IsHolding<VtVec2fArray>())
         _pVertexData->uvs = uvValue.UncheckedGet<VtVec2fArray>();
 
     // Attempt to get UVs using "st" token if "map1" fails.  Both can be used in different
     // circumstances.
     if (_pVertexData->uvs.size() == 0)
     {
-        if (auto&& stValue = delegate->Get(id, pxr::TfToken("st")); !stValue.IsEmpty())
+        if (auto&& stValue = delegate->Get(id, pxr::TfToken("st")); stValue.IsHolding<VtVec2fArray>())
             _pVertexData->uvs = stValue.UncheckedGet<VtVec2fArray>();
     }
 
@@ -759,7 +763,10 @@ void HdAuroraMesh::Sync(HdSceneDelegate* delegate, HdRenderParam* /* renderParam
         }
 
         // see if we need to add new instances
-        const bool addInstances = _auroraInstances.size() > _instanceData.size();
+        // 4AIAD: was '>', so a mesh without Aurora instances (hidden, e.g. a part switched off or the
+        // spark) took the transform-only path below, which resized the instance list with empty paths
+        // and set properties on a null resource (crash when its rigid body moved).
+        const bool addInstances = _auroraInstances.size() < _instanceData.size();
 
         if (meshDirty || addInstances)
         {
@@ -791,6 +798,8 @@ void HdAuroraMesh::Sync(HdSceneDelegate* delegate, HdRenderParam* /* renderParam
             // update transforms only (as other properties have not changed)
             for (size_t i = 0; i < _instanceData.size(); ++i)
             {
+                if (_auroraInstances[i].empty())
+                    continue;  // 4AIAD: never address a resource that was not created
                 _owner->GetScene()->setInstanceProperties(_auroraInstances[i],
                     { { Aurora::Names::InstanceProperties::kTransform,
                         _instanceData[i].properties.at(

@@ -264,16 +264,26 @@ const void* PTRenderBuffer::data(size_t& stride, bool removePadding)
         // NOTE: The _dataSize member (i.e. the "total bytes" property from GetCopyableFootprints())
         // excludes the padding for the last row, but we define the host data buffer to include that
         // padding here, i.e. a full stride for every row, as that is what the client will expect.
-        if (_pData.empty())
+        // 4AIAD: size the host buffer for the current dimensions and stride, not only when empty.
+        if (_pData.size() != stride * _dimensions.y)
             _pData.resize(stride * _dimensions.y);
 
         // Read the entire contents of the readback buffer into the host data buffer.
-        IBufferPtr readback             = asReadable(stride);
+        // 4AIAD: asReadable() reports the padded GPU row pitch; keep it out of the caller's stride,
+        // which describes the host copy (tight rows when removePadding). Overwriting it made clients
+        // read past the end whenever the width was not a multiple of the 256-byte row alignment.
+        size_t readbackStride           = 0;
+        IBufferPtr readback             = asReadable(readbackStride);
         PTReadbackBuffer* privateBuffer = static_cast<PTReadbackBuffer*>(readback.get());
         privateBuffer->data(_dimensions.x, _dimensions.y, _pData.data());
 
         _hasPendingData = false;
     }
+
+    // 4AIAD: no host copy for the current size yet (e.g. right after resize(), which clears it but
+    // keeps the old allocation): return nothing rather than a pointer to stale, smaller memory.
+    if (_pData.size() < stride * _dimensions.y)
+        return nullptr;
 
     // Return the data pointer.
     return _pData.data();
