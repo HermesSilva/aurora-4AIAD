@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C30F33FA-C7CE-3854-A2D2-75FFE4A504B6}</ProjectGuid>
+    <RootNamespace>Aurora</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(MSBuildThisFileDirectory)..\..\Aurora4AIAD.props" />
+  </ImportGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(AuroraRoot)Libraries\Aurora\API;$(AuroraRoot)Libraries\Aurora\Source;$(IntDir)Generated;$(AuroraRoot)VersionFiles;$(AuroraExternals)NRI\include;$(AuroraExternals)NRD\include;$(AuroraExternals)NRD\Integration;$(AuroraRoot)Libraries\Foundation\API;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NOMINMAX;UNICODE;_USE_MATH_DEFINES;_HAS_STD_BYTE=0;AURORA_STATIC;PXR_STATIC;DIRECTX_SUPPORT=1;HGI_SUPPORT=0;ENABLE_MATERIALX=1;ENABLE_DENOISER=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level4</WarningLevel>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>/external:I &quot;$(AuroraExternals)MaterialX/include&quot; /external:I &quot;$(AuroraExternals)stb/include&quot; /external:I &quot;$(AuroraExternals)glm&quot; /external:I &quot;$(AuroraExternals)Slang/include&quot; /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\AliasMap.cpp" />
+    <ClCompile Include="Source\AssetManager.cpp" />
+    <ClCompile Include="Source\Aurora.cpp" />
+    <ClCompile Include="Source\AuroraNames.cpp" />
+    <ClCompile Include="Source\EnvironmentBase.cpp" />
+    <ClCompile Include="Source\GeometryBase.cpp" />
+    <ClCompile Include="Source\MaterialBase.cpp" />
+    <ClCompile Include="Source\MaterialDefinition.cpp" />
+    <ClCompile Include="Source\MaterialShader.cpp" />
+    <ClCompile Include="Source\RendererBase.cpp" />
+    <ClCompile Include="Source\Resources.cpp" />
+    <ClCompile Include="Source\ResourceStub.cpp" />
+    <ClCompile Include="Source\SceneBase.cpp" />
+    <ClCompile Include="Source\UniformBuffer.cpp" />
+    <ClCompile Include="Source\Transpiler.cpp" />
+    <ClCompile Include="Source\DirectX\MemoryPool.cpp" />
+    <ClCompile Include="Source\DirectX\PTDevice.cpp" />
+    <ClCompile Include="Source\DirectX\PTEnvironment.cpp" />
+    <ClCompile Include="Source\DirectX\PTGeometry.cpp" />
+    <ClCompile Include="Source\DirectX\PTGroundPlane.cpp" />
+    <ClCompile Include="Source\DirectX\PTImage.cpp" />
+    <ClCompile Include="Source\DirectX\PTLight.cpp" />
+    <ClCompile Include="Source\DirectX\PTMaterial.cpp" />
+    <ClCompile Include="Source\DirectX\PTRenderer.cpp" />
+    <ClCompile Include="Source\DirectX\PTSampler.cpp" />
+    <ClCompile Include="Source\DirectX\PTScene.cpp" />
+    <ClCompile Include="Source\DirectX\PTShaderLibrary.cpp" />
+    <ClCompile Include="Source\DirectX\PTTarget.cpp" />
+    <ClCompile Include="Source\DirectX\Denoiser.cpp" />
+    <ClCompile Include="Source\MaterialX\BSDFCodeGenerator.cpp" />
+    <ClCompile Include="Source\MaterialX\MaterialGenerator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="API\Aurora\Aurora.h" />
+    <ClInclude Include="API\Aurora\AuroraNames.h" />
+    <ClInclude Include="Source\AliasMap.h" />
+    <ClInclude Include="Source\AssetManager.h" />
+    <ClInclude Include="Source\EnvironmentBase.h" />
+    <ClInclude Include="Source\GeometryBase.h" />
+    <ClInclude Include="Source\MaterialBase.h" />
+    <ClInclude Include="Source\MaterialDefinition.h" />
+    <ClInclude Include="Source\MaterialShader.h" />
+    <ClInclude Include="Source\pch.h" />
+    <ClInclude Include="Source\Properties.h" />
+    <ClInclude Include="Source\RendererBase.h" />
+    <ClInclude Include="Source\Resources.h" />
+    <ClInclude Include="Source\ResourceTracker.h" />
+    <ClInclude Include="Source\ResourceStub.h" />
+    <ClInclude Include="Source\SceneBase.h" />
+    <ClInclude Include="Source\UniformBuffer.h" />
+    <ClInclude Include="Source\Transpiler.h" />
+    <ClInclude Include="Source\WindowsHeaders.h" />
+    <ClInclude Include="Source\DirectX\MemoryPool.h" />
+    <ClInclude Include="Source\DirectX\PTDevice.h" />
+    <ClInclude Include="Source\DirectX\PTEnvironment.h" />
+    <ClInclude Include="Source\DirectX\PTGeometry.h" />
+    <ClInclude Include="Source\DirectX\PTGroundPlane.h" />
+    <ClInclude Include="Source\DirectX\PTImage.h" />
+    <ClInclude Include="Source\DirectX\PTLight.h" />
+    <ClInclude Include="Source\DirectX\PTMaterial.h" />
+    <ClInclude Include="Source\DirectX\PTRenderer.h" />
+    <ClInclude Include="Source\DirectX\PTSampler.h" />
+    <ClInclude Include="Source\DirectX\PTScene.h" />
+    <ClInclude Include="Source\DirectX\PTShaderLibrary.h" />
+    <ClInclude Include="Source\DirectX\PTTarget.h" />
+    <ClInclude Include="Source\MaterialX\MaterialGenerator.h" />
+    <ClInclude Include="Source\DirectX\Denoiser.h" />
+    <ClInclude Include="Source\MaterialX\BSDFCodeGenerator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <ForcedIncludeFiles></ForcedIncludeFiles>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Slang shaders minified into a C++ header, and the default main entry points compiled with slangc. -->
+    <CustomBuild Include="Source\Shaders\MainEntryPoints.slang">
+      <Message>Packing the Aurora shaders (Slang)</Message>
+      <Command>if not exist "$(IntDir)Generated\CompiledShaders" mkdir "$(IntDir)Generated\CompiledShaders"
+set DXC_LIBRARY_DIR=$(AuroraExternals)DXC\bin
+set ENABLE_NRD=ON
+set NRD_SHADERS_INCLUDE_DIR=$(AuroraExternals)NRD\Shaders
+set NRD_SHADERS_SOURCE_DIR=$(AuroraExternals)NRD\Shaders\Source
+$(AuroraPython) "$(AuroraRoot)Scripts\minifyShadersFolder.py" "$(MSBuildThisFileDirectory)Source\Shaders" "$(IntDir)Generated\CompiledShaders\CommonShaders.h" "$(AuroraExternals)Slang\bin\slangc.exe"</Command>
+      <AdditionalInputs>$(MSBuildThisFileDirectory)Source\Shaders\BSDF.slang;$(MSBuildThisFileDirectory)Source\Shaders\BSDFCommon.slang;$(MSBuildThisFileDirectory)Source\Shaders\Colors.slang;$(MSBuildThisFileDirectory)Source\Shaders\DefaultMaterialUniformAccessors.slang;$(MSBuildThisFileDirectory)Source\Shaders\DefaultMaterialUniformBuffer.slang;$(MSBuildThisFileDirectory)Source\Shaders\DefaultMaterial.slang;$(MSBuildThisFileDirectory)Source\Shaders\Environment.slang;$(MSBuildThisFileDirectory)Source\Shaders\Frame.slang;$(MSBuildThisFileDirectory)Source\Shaders\Geometry.slang;$(MSBuildThisFileDirectory)Source\Shaders\Globals.slang;$(MSBuildThisFileDirectory)Source\Shaders\GroundPlane.slang;$(MSBuildThisFileDirectory)Source\Shaders\InstancePipelineState.slang;$(MSBuildThisFileDirectory)Source\Shaders\GlobalPipelineState.slang;$(MSBuildThisFileDirectory)Source\Shaders\HitShaderEntryPoints.slang;$(MSBuildThisFileDirectory)Source\Shaders\Material.slang;$(MSBuildThisFileDirectory)Source\Shaders\GlobalBufferAccessors.slang;$(MSBuildThisFileDirectory)Source\Shaders\MaterialXCommon.slang;$(MSBuildThisFileDirectory)Source\Shaders\Options.slang;$(MSBuildThisFileDirectory)Source\Shaders\PathTracingCommon.slang;$(MSBuildThisFileDirectory)Source\Shaders\ShadeFunctions.slang;$(MSBuildThisFileDirectory)Source\Shaders\Random.slang;$(MSBuildThisFileDirectory)Source\Shaders\RayTrace.slang;$(MSBuildThisFileDirectory)Source\Shaders\ReferenceBSDF.slang;$(MSBuildThisFileDirectory)Source\Shaders\StandardSurfaceBSDF.slang;$(MSBuildThisFileDirectory)Source\Shaders\Sampling.slang;$(MSBuildThisFileDirectory)Source\Shaders\NRD.slang;$(AuroraRoot)Scripts\minifyShadersFolder.py</AdditionalInputs>
+      <Outputs>$(IntDir)Generated\CompiledShaders\CommonShaders.h</Outputs>
+    </CustomBuild>
+    <!-- NRD.hlsli resolved by the Slang transpiler at run time: embedded verbatim. -->
+    <CustomBuild Include="$(AuroraExternals)NRD\Shaders\NRD.hlsli">
+      <Message>Embedding the NRD shader headers</Message>
+      <Command>if not exist "$(IntDir)Generated\CompiledShaders" mkdir "$(IntDir)Generated\CompiledShaders"
+$(AuroraPython) "$(AuroraRoot)Scripts\embedShaderFiles.py" "$(IntDir)Generated\CompiledShaders\NRDShaders.h" NRDShaders "$(AuroraExternals)NRD\Shaders\NRD.hlsli" "$(AuroraExternals)NRD\Shaders\NRDConfig.hlsli"</Command>
+      <AdditionalInputs>$(AuroraExternals)NRD\Shaders\NRDConfig.hlsli;$(AuroraRoot)Scripts\embedShaderFiles.py</AdditionalInputs>
+      <Outputs>$(IntDir)Generated\CompiledShaders\NRDShaders.h</Outputs>
+    </CustomBuild>
+  </ItemGroup>  <ItemGroup>
+    <FXCompile Include="Source\DirectX\Shaders\Accumulation.hlsl">
+      <EntryPointName>Accumulation</EntryPointName>
+      <ShaderType>Compute</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <HeaderFileOutput>$(IntDir)Generated/CompiledShaders/Accumulation.hlsl.h</HeaderFileOutput>
+      <VariableName>g_pAccumulationShader</VariableName>
+    </FXCompile>
+    <FXCompile Include="Source\DirectX\Shaders\PostProcessing.hlsl">
+      <EntryPointName>PostProcessing</EntryPointName>
+      <ShaderType>Compute</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <HeaderFileOutput>$(IntDir)Generated/CompiledShaders/PostProcessing.hlsl.h</HeaderFileOutput>
+      <VariableName>g_pPostProcessingShader</VariableName>
+    </FXCompile>
+    <FXCompile Include="Source\DirectX\Shaders\TemporalResolve.hlsl">
+      <EntryPointName>TemporalResolve</EntryPointName>
+      <ShaderType>Compute</ShaderType>
+      <ShaderModel>6.3</ShaderModel>
+      <HeaderFileOutput>$(IntDir)Generated/CompiledShaders/TemporalResolve.hlsl.h</HeaderFileOutput>
+      <VariableName>g_pTemporalResolveShader</VariableName>
+    </FXCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Foundation\Foundation.vcxproj">
+      <Project>{22885EFD-C0BB-369A-ACC3-6CDB5096FF48}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

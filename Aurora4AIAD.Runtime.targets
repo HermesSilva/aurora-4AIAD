@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 4AIAD: what an executable linking Aurora needs next to it at run time (imported by that
+       executable's project): the shader compilers (DXC, Slang), the NVIDIA denoiser (NRD/NRI) and the
+       MaterialX libraries. Replaces the Copy*/MakeRuntimeDir targets of the CMake build. -->
+  <PropertyGroup>
+    <AuroraExternals Condition="'$(AuroraExternals)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\_externals\aurora\'))</AuroraExternals>
+  </PropertyGroup>
+  <ItemGroup>
+    <AuroraRuntimeFile Include="$(AuroraExternals)DXC\bin\dxcompiler.dll;$(AuroraExternals)DXC\bin\dxil.dll" />
+    <AuroraRuntimeFile Include="$(AuroraExternals)Slang\bin\*.dll" />
+    <AuroraRuntimeFile Include="$(AuroraExternals)NRD\bin\NRD.dll;$(AuroraExternals)NRI\bin\NRI.dll;$(AuroraExternals)NRI\bin\amd_ags_x64.dll" />
+    <AuroraMaterialXLibrary Include="$(AuroraExternals)MaterialX\libraries\**\*" />
+  </ItemGroup>
+  <Target Name="AuroraCopyRuntime" AfterTargets="Build">
+    <Copy SourceFiles="@(AuroraRuntimeFile)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(AuroraMaterialXLibrary)" DestinationFiles="@(AuroraMaterialXLibrary->'$(OutDir)MaterialX\libraries\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

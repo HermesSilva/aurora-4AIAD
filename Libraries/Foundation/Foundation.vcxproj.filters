@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="API">
+      <UniqueIdentifier>{963f01ee-d794-d152-3341-049bf226fe26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="API\Aurora">
+      <UniqueIdentifier>{954cbe6d-6037-c0e4-0403-830b4f1df4fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="API\Aurora\Foundation">
+      <UniqueIdentifier>{f932742d-548d-a2c7-8dd8-b4b5c7224170}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{8dfcfa7b-82af-e270-ead9-53b9059a36c6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\Geometry.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Utilities.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Log.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClInclude Include="API\Aurora\Foundation\BoundingBox.h">
+      <Filter>API\Aurora\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Aurora\Foundation\Frustum.h">
+      <Filter>API\Aurora\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Aurora\Foundation\Log.h">
+      <Filter>API\Aurora\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Aurora\Foundation\Plane.h">
+      <Filter>API\Aurora\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Aurora\Foundation\Timer.h">
+      <Filter>API\Aurora\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Aurora\Foundation\Utilities.h">
+      <Filter>API\Aurora\Foundation</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Aurora\Foundation\Geometry.h">
+      <Filter>API\Aurora\Foundation</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

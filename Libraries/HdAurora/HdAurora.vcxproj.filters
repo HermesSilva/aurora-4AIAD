@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="HdAuroraStaticRegistration.cpp" />
+    <ClCompile Include="HdAuroraImageCache.cpp" />
+    <ClCompile Include="HdAuroraInstancer.cpp" />
+    <ClCompile Include="HdAuroraLight.cpp" />
+    <ClCompile Include="HdAuroraMaterial.cpp" />
+    <ClCompile Include="HdAuroraMesh.cpp" />
+    <ClCompile Include="HdAuroraPlugin.cpp" />
+    <ClCompile Include="HdAuroraRenderBuffer.cpp" />
+    <ClCompile Include="HdAuroraRenderDelegate.cpp" />
+    <ClCompile Include="HdAuroraRenderPass.cpp" />
+    <ClInclude Include="HdAuroraImageCache.h" />
+    <ClInclude Include="HdAuroraInstancer.h" />
+    <ClInclude Include="HdAuroraLight.h" />
+    <ClInclude Include="HdAuroraMaterial.h" />
+    <ClInclude Include="HdAuroraMesh.h" />
+    <ClInclude Include="HdAuroraPlugin.h" />
+    <ClInclude Include="HdAuroraRenderBuffer.h" />
+    <ClInclude Include="HdAuroraRenderDelegate.h" />
+    <ClInclude Include="HdAuroraRenderPass.h" />
+    <ClInclude Include="HdAuroraAssetPath.h" />
+    <ClInclude Include="HdAuroraTokens.h" />
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+</Project>

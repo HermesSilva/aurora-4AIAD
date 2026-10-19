@@ -18,3 +18,6 @@ pluginPath.plugInfo.json
 .vs/
 .vscode/
 .idea/
+
+# 4AIAD: plugInfo of the static HdAurora (no library path), versioned for the Visual Studio build
+!Libraries/HdAurora/resources-4AIAD/plugInfo.json

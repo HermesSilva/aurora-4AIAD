@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2AA7E63D-4AB9-30EA-A4A2-828C0B33558C}</ProjectGuid>
+    <RootNamespace>hdAurora</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(MSBuildThisFileDirectory)..\..\Aurora4AIAD.props" />
+  </ImportGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(AuroraRoot)VersionFiles;$(AuroraRoot)Libraries\Foundation\API;$(AuroraRoot)Libraries\Aurora\API;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NOMINMAX;UNICODE;_USE_MATH_DEFINES;_HAS_STD_BYTE=0;HDAURORA_NO_GL;PXR_STATIC;PXR_STATIC=1;AURORA_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level4</WarningLevel>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>/external:I &quot;$(AuroraExternals)glm&quot; /external:I &quot;$(AuroraExternals)MaterialX/include&quot; /external:I &quot;$(AuroraUsd)include&quot; /utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="HdAuroraStaticRegistration.cpp" />
+    <ClCompile Include="HdAuroraImageCache.cpp" />
+    <ClCompile Include="HdAuroraInstancer.cpp" />
+    <ClCompile Include="HdAuroraLight.cpp" />
+    <ClCompile Include="HdAuroraMaterial.cpp" />
+    <ClCompile Include="HdAuroraMesh.cpp" />
+    <ClCompile Include="HdAuroraPlugin.cpp" />
+    <ClCompile Include="HdAuroraRenderBuffer.cpp" />
+    <ClCompile Include="HdAuroraRenderDelegate.cpp" />
+    <ClCompile Include="HdAuroraRenderPass.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="HdAuroraImageCache.h" />
+    <ClInclude Include="HdAuroraInstancer.h" />
+    <ClInclude Include="HdAuroraLight.h" />
+    <ClInclude Include="HdAuroraMaterial.h" />
+    <ClInclude Include="HdAuroraMesh.h" />
+    <ClInclude Include="HdAuroraPlugin.h" />
+    <ClInclude Include="HdAuroraRenderBuffer.h" />
+    <ClInclude Include="HdAuroraRenderDelegate.h" />
+    <ClInclude Include="HdAuroraRenderPass.h" />
+    <ClInclude Include="HdAuroraAssetPath.h" />
+    <ClInclude Include="HdAuroraTokens.h" />
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Aurora\Aurora.vcxproj">
+      <Project>{C30F33FA-C7CE-3854-A2D2-75FFE4A504B6}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Foundation\Foundation.vcxproj">
+      <Project>{22885EFD-C0BB-369A-ACC3-6CDB5096FF48}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

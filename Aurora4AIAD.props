@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 4AIAD: settings of the Visual Studio projects of Foundation, Aurora and HdAurora (static, no
+       OpenGL, the AIAD_INTEGRATION configuration of the CMake build). The defaults find the Aurora
+       externals and the static OpenUSD where Tootega AIAD keeps them (this fork in deps\forks); set
+       AuroraExternals / AuroraUsd to build it elsewhere. -->
+  <PropertyGroup>
+    <AuroraRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</AuroraRoot>
+    <AuroraExternals Condition="'$(AuroraExternals)' == ''">$([System.IO.Path]::GetFullPath('$(AuroraRoot)..\..\_externals\aurora\'))</AuroraExternals>
+    <AuroraUsd Condition="'$(AuroraUsd)' == ''">$([System.IO.Path]::GetFullPath('$(AuroraRoot)..\..\static\release\'))</AuroraUsd>
+    <AuroraPython Condition="'$(AuroraPython)' == '' and '$(AiadPython)' != ''">$(AiadPython)</AuroraPython>
+    <AuroraPython Condition="'$(AuroraPython)' == ''">py -3</AuroraPython>
+    <!-- Inside Tootega AIAD the libraries go where its projects link them from. -->
+    <AuroraOut Condition="'$(AiadRoot)' != ''">$(AiadRoot)_build\$(Configuration)\</AuroraOut>
+    <AuroraOut Condition="'$(AiadRoot)' == ''">$(AuroraRoot)_build\$(Configuration)\</AuroraOut>
+    <OutDir>$(AuroraOut)lib\</OutDir>
+    <IntDir>$(AuroraOut)obj\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <!-- No /Zc:inline: it drops the unreferenced .pxrctor entries that run the static OpenUSD
+           registrations (TF_REGISTRY_FUNCTION, plugin types). -->
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Release'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)' == 'Debug'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>
